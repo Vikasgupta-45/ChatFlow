@@ -9,7 +9,7 @@ export const createChat = async (req, res) => {
             name:"new chat",
         };
         const chat = await Chat.create(chatData);
-        res.status(201).json(chat);
+        res.status(201).json({ success: true, chat });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -19,7 +19,7 @@ export const getChats = async (req, res) => {
     try {
         const userId=req.user.id;
         const chats = await Chat.find({userId}).sort({updatedAt:-1});
-        res.status(200).json(chats);
+        res.status(200).json({ success: true, chats });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -37,7 +37,7 @@ export const deleteChat = async (req, res) => {
             return res.status(401).json({message:"Not authorized"});
         }
         await chat.deleteOne();
-        res.status(200).json({message:"Chat deleted"});
+        res.status(200).json({ success: true, message:"Chat deleted" });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

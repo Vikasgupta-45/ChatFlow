@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 // Assuming you have 'assets' imported from your asset file
 import { assets } from '../assets/assets' // <--- Add this import
 import moment from 'moment'
@@ -8,14 +8,35 @@ import Prism from 'prismjs'
 
 
 // Assuming you have useAppContext to get theme for the AI icon
-import { useAppContext } from '../context/AppContext' // <--- Add this import
 
-const Message = ({ message }) => {
+const Message = ({ message, isTyping }) => {
+    const [displayedContent, setDisplayedContent] = useState(isTyping ? "" : message.content);
+
     useEffect(() => {
         Prism.highlightAll()
-    }, [message.content])
-    // Get theme from context if you need to use dark/light version of an icon
-    const { theme } = useAppContext(); 
+    }, [displayedContent, message.content])
+
+    useEffect(() => {
+        if (!isTyping) {
+            setDisplayedContent(message.content);
+            return;
+        }
+
+        const words = message.content.split(/(\s+)/); // Split keeping whitespace
+        let currentIndex = 0;
+        setDisplayedContent("");
+
+        const intervalId = setInterval(() => {
+            if (currentIndex < words.length) {
+                setDisplayedContent((prev) => prev + words[currentIndex]);
+                currentIndex++;
+            } else {
+                clearInterval(intervalId);
+            }
+        }, 40);
+
+        return () => clearInterval(intervalId);
+    }, [isTyping, message.content]);
 
     return (
         <div>
@@ -41,22 +62,22 @@ const Message = ({ message }) => {
                         alt="AI" 
                         className='w-8 h-8 rounded-full' // Add height to prevent stretching
                     /> */}
-                    
+
                     <div className='flex flex-col gap-2 p-2 px-4 max-w-2xl bg-primary/20 dark:bg-[#57317C]/30 border border-[#80609F]/30 rounded-md'>
-                        {message.isImage ? 
+                        {message.isImage ?
                             (
-                                <img 
-                                    src={message.content} 
-                                    alt="AI Image Response" 
+                                <img
+                                    src={message.content}
+                                    alt="AI Image Response"
                                     className='w-full max-w-md mt-2 rounded-md'
-                                /> 
+                                />
                             ) : (
                                 // Use a standard div for text content
                                 <div className='text-sm dark:text-primary reset-tw'>
                                     <Markdown>
-                                         {message.content}
+                                        {displayedContent}
                                     </Markdown>
-                                   
+
                                 </div>
                             )
                         }
